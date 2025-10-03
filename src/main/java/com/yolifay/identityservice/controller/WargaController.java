@@ -6,6 +6,10 @@ import com.yolifay.identityservice.common.ResponseApiService;
 import com.yolifay.identityservice.common.ResponseApiUtil;
 import com.yolifay.identityservice.dto.WargaCreateRequest;
 import com.yolifay.identityservice.dto.WargaResponse;
+import com.yolifay.identityservice.dto.filter.WargaFilter;
+import com.yolifay.identityservice.dto.pagination.BasePaging;
+import com.yolifay.identityservice.dto.pagination.ListWargaRequest;
+import com.yolifay.identityservice.dto.pagination.PageEnvelope;
 import com.yolifay.identityservice.service.WargaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -16,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,17 +49,36 @@ public class WargaController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseApiService<Iterable<WargaResponse>>> getAllWarga() {
+    public ResponseEntity<ResponseApiService<PageEnvelope<WargaResponse>>> getAllWarga(
+            @RequestParam (required = false) Integer page,
+            @RequestParam (required = false, name = "perpage") Integer perPage,
+            @RequestParam (required = false, name = "sortField") String sortField,
+            @RequestParam (required = false, name = "sortDirection") String sortDirection,
+            @RequestParam (required = false, name = "q") String q,
+            @RequestParam (required = false, name = "rt") Integer rt,
+            @RequestParam (required = false, name = "rw") Integer rw
+    ) {
         log.info("Incoming get all warga");
-        Iterable<WargaResponse> res = wargaService.getAllWarga();
+        // Simpan raw parameters into BasePaging
+        var paging = new BasePaging(page, perPage, sortField, sortDirection, q);
 
-        log.info("Outgoing All Warga data");
+        // Create filter object
+        WargaFilter wargaFilter = new WargaFilter();
+        wargaFilter.setRt(rt);
+        wargaFilter.setRw(rw);
+
+        var req = new ListWargaRequest(paging, wargaFilter);
+        var resp = wargaService.getAllWarga(req);
+
+        log.info("Outgoing All Warga data page={} size={} totalElements={}",
+                resp.page(), resp.size(), resp.totalElements());
+
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseApiUtil.setResponse(
                         HttpStatus.OK.value(),
                         constantsProperties.getServiceId(),
                         Constants.RESPONSE.APPROVED,
-                        res
+                        resp
                 )
         );
     }
