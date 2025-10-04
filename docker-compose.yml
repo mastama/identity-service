@@ -1,7 +1,11 @@
+networks:
+  default:
+    name: desa-digital-network
+
 services:
   postgres:
     image: postgres:15
-    container_name: pg-desa-digital
+    container_name: identity-desa-digital
     environment:
       POSTGRES_DB: desa_digital
       POSTGRES_USER: mastama
@@ -19,18 +23,17 @@ services:
       retries: 10
 
   identity-service:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: identity-service
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8080
-
-        # DB
       DATABASE_URL: postgres
       DATABASE_PORT: 5432
       DATABASE_NAME: desa_digital
