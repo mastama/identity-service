@@ -12,8 +12,6 @@ import com.yolifay.identityservice.repository.WargaRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -142,7 +140,6 @@ public class WargaService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "wargaByNik", key = "#nik")
     public WargaResponse getWargaByNik(String nik) throws DataNotFoundException {
         log.info("Start get warga by NIK: {}", nik);
 
@@ -154,7 +151,6 @@ public class WargaService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "wargaByNik", key = "#nik")
     public WargaResponse updateWarga(String nik, WargaCreateRequest req) throws DataNotFoundException, ConflictException {
         log.info("Start update warga with NIK: {}", nik);
 
@@ -179,7 +175,6 @@ public class WargaService {
         return mapToResponse(updated);
     }
 
-    @CacheEvict(cacheNames = "wargaByNik", key = "#nik")
     public void deleteWarga(String nik) throws DataNotFoundException {
         log.info("Start delete warga with NIK: {}", nik);
 
